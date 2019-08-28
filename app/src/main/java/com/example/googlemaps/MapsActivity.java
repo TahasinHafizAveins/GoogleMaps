@@ -25,6 +25,7 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.Circle;
 import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
@@ -38,7 +39,8 @@ import com.google.android.libraries.places.widget.listener.PlaceSelectionListene
 
 import java.util.Arrays;
 
-public class MapsActivity extends FragmentActivity implements OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener {
+public class MapsActivity extends FragmentActivity implements OnMapReadyCallback,
+        GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener {
 
     private GoogleMap mMap;
     private static final String TAG = "MapActivity";
@@ -53,6 +55,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private static final float Default_Zoom = 15f;
     private GoogleApiClient mGoogleApiClient;
     Marker marker;
+    private Circle mCircle;
+    private LatLng clatLng = null;
 
 
     @Override
@@ -193,6 +197,19 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         return true;
     }
 
+
+    private void drawCircle() {
+        mMap.addCircle(new CircleOptions()
+                .center(clatLng)
+                .radius(500.0)
+                .strokeWidth(5f)
+                .clickable(true)
+                .strokeColor(Color.RED)
+                .fillColor(Color.argb(70, 150, 50, 50))
+        );
+        clatLng=null;
+    }
+
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
@@ -201,9 +218,25 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             @Override
             public void onMapClick(LatLng point) {
                 mMap.clear();
+                if (clatLng == null) {
+                    Log.d(TAG, "Latlong null");
+                    clatLng = point;
+                    drawCircle();
+
+                }
                 setMarker(point);
             }
         });
+
+        mMap.setOnCircleClickListener(new GoogleMap.OnCircleClickListener() {
+            @Override
+            public void onCircleClick(Circle circle) {
+                circle.setRadius(400.0);
+                clatLng = null;
+                Log.d(TAG, "circleRemove: Done");
+            }
+        });
+
     }
 
     @Override
@@ -229,38 +262,45 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
     @Override
-    public void onStatusChanged(String s, int i, Bundle bundle) { }
+    public void onStatusChanged(String s, int i, Bundle bundle) {
+    }
 
     @Override
-    public void onProviderEnabled(String s) { }
+    public void onProviderEnabled(String s) {
+    }
 
     @Override
-    public void onProviderDisabled(String s) { }
+    public void onProviderDisabled(String s) {
+    }
 
     @Override
-    public void onConnected(@Nullable Bundle bundle) { displayLocation(); }
+    public void onConnected(@Nullable Bundle bundle) {
+        displayLocation();
+    }
 
     @Override
-    public void onConnectionSuspended(int i) { mGoogleApiClient.connect(); }
+    public void onConnectionSuspended(int i) {
+        mGoogleApiClient.connect();
+    }
 
     @Override
-    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {}
+    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
+    }
 
-    private void moveCamera(LatLng latLng, float zoom, String title) { setMarker(latLng); }
+    private void moveCamera(LatLng latLng, float zoom, String title) {
+        setMarker(latLng);
+    }
 
-    private void setMarker(LatLng latLng) {
+    private void setMarker(final LatLng latLng) {
         if (marker != null) {
             marker.remove();
         }
+
         Log.d(TAG, "moveCamera: moving camera to : latitude: " + latLng.latitude + ", longitude: " + latLng.longitude);
         marker = mMap.addMarker(new MarkerOptions().position(latLng));
         mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 15F));
-        mMap.addCircle(new CircleOptions()
-                .center(latLng)
-                .radius(500.0)
-                .strokeWidth(5f)
-                .strokeColor(Color.RED)
-                .fillColor(Color.argb(70, 150, 50, 50))
-        );
+
     }
+
+
 }
