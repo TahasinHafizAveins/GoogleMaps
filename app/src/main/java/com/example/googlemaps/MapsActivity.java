@@ -40,10 +40,12 @@ import com.google.android.libraries.places.widget.listener.PlaceSelectionListene
 import java.util.Arrays;
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback,
-        GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener {
+        GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener,
+        LocationListener,MapDialog.DialogListener {
+
 
     private GoogleMap mMap;
-    private static final String TAG = "MapActivity";
+    private static final String TAG = "MapsActivity";
     private static final int PERMISSION_REQUEST_CODE = 7001;
     private static final int PLAY_SERVICE_REQUEST = 7002;
     private static final int UPDATE_INTERVAL = 5000;
@@ -57,6 +59,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     Marker marker;
     private Circle mCircle;
     private LatLng clatLng = null;
+    Double radius = null;
+    Double r = 100.0;
 
 
     @Override
@@ -207,7 +211,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 .strokeColor(Color.RED)
                 .fillColor(Color.argb(70, 150, 50, 50))
         );
-        clatLng=null;
+        clatLng = null;
     }
 
     @Override
@@ -231,12 +235,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mMap.setOnCircleClickListener(new GoogleMap.OnCircleClickListener() {
             @Override
             public void onCircleClick(Circle circle) {
-                circle.setRadius(400.0);
-                clatLng = null;
-                Log.d(TAG, "circleRemove: Done");
+                showCustomDialog(circle);
             }
         });
-
     }
 
     @Override
@@ -302,5 +303,26 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     }
 
+    private void showCustomDialog(Circle circle) {
+        mCircle= circle;
+
+        Log.d(TAG, "Open Dialog");
+        Bundle bundle = new Bundle();
+        bundle.putDouble("radius", circle.getRadius());
+
+        MapDialog mapDialog = new MapDialog();
+        mapDialog.setCancelable(false);
+        mapDialog.setArguments(bundle);
+
+        mapDialog.show(getSupportFragmentManager(), TAG);
+
+
+    }
+
+    @Override
+    public void onFinishEditDialog(Double inputText) {
+        mCircle.setRadius(inputText);
+        Log.d(TAG, "gettingRadius: " + inputText);
+    }
 
 }
